@@ -1,0 +1,35 @@
+# Exported from Render on 2026-05-03T22:51:52Z
+version: "1"
+services:
+- type: web
+  name: Hotspot-portal
+  runtime: node
+  repo: https://github.com/DexterKibs1/Hotspot-portal
+  plan: free
+  envVars:
+  - key: MONGO_URL
+    sync: false
+  - key: NODE_ENV
+    sync: false
+  - key: PORT
+    sync: false
+  - key: ADMIN_PASSWORD
+    sync: false
+  - key: ADMIN_EMAIL
+    sync: false
+  - key: MPESA_ENV
+    sync: false
+  - key: MPESA_SHORTCODE
+    sync: false
+  - key: MPESA_PASSKEY
+    sync: false
+  - key: MPESA_CONSUMER_SECRET
+    sync: false
+  - key: MPESA_CONSUMER_KEY
+    sync: false
+  - key: JWT_SECRET
+    sync: false
+  region: frankfurt
+  buildCommand: npm install mongodb
+  startCommand: node src/server.js
+  autoDeployTrigger: "off"

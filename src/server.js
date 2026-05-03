@@ -39,6 +39,7 @@ mongoose
     process.exit(1);
   });
 
+app.use("/api/auth", require("./routes/auth"));
 app.use("/api/packages", packageRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);

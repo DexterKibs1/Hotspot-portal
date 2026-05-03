@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • Pulse Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white flex items-center justify-center min-h-screen">
+  <div class="bg-gray-900 p-8 rounded-2xl w-full max-w-md">
+    <h1 class="text-3xl font-bold text-orange-500 text-center mb-8">Pulse Admin Login</h1>
+    
+    <input id="phone" placeholder="Phone Number" class="w-full bg-gray-800 p-4 rounded-xl mb-4">
+    <input id="password" type="password" placeholder="Password" class="w-full bg-gray-800 p-4 rounded-xl mb-6">
+    
+    <button onclick="login()" 
+            class="w-full bg-orange-600 hover:bg-orange-700 py-4 rounded-xl font-semibold">
+      Login
+    </button>
+  </div>
+
+  <script>
+    async function login() {
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem('adminToken', data.token);
+        window.location.href = '/admin';
+      } else {
+        alert(data.message);
+      }
+    }
+  </script>
+</body>
+</html>

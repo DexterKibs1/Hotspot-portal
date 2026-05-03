@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: false },
     sessionExpiry: { type: Date },
     totalSpent: { type: Number, default: 0 },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: { type: String, enum: ["user", "staff", "admin"], default: "user" },
     password: { type: String },
   },
   { timestamps: true }

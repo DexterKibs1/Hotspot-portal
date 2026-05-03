@@ -1,76 +1,87 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const jwt = require("jsonwebtoken");
-const Transaction = require("../models/Transaction");
-const User = require("../models/User");
-const Package = require("../models/Package");
+const Package = require('../models/Package');
+const Transaction = require('../models/Transaction');
+const User = require('../models/User');
 
-// Auth Middleware
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "No token provided" });
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin") return res.status(403).json({ error: "Forbidden" });
-    req.user = decoded;
-    next();
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-  }
-};
-
+// ======================
 // Dashboard Stats
-router.get("/stats", authMiddleware, async (req, res) => {
+// ======================
+router.get('/stats', async (req, res) => {
   try {
-    const [totalRevenue, totalTransactions, activeUsers, packages] = await Promise.all([
-      Transaction.aggregate([{ $match: { status: "completed" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
-      Transaction.countDocuments({ status: "completed" }),
-      User.countDocuments({ isActive: true, sessionExpiry: { $gt: new Date() } }),
-      Package.find({ isActive: true }),
+    const totalRevenue = await Transaction.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
-    const recentTransactions = await Transaction.find({ status: "completed" })
-      .sort({ createdAt: -1 })
-      .limit(10);
+    const todayRevenue = await Transaction.aggregate([
+      { $match: { status: 'completed', completedAt: { $gte: new Date(new Date().setHours(0,0,0,0)) } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
 
     res.json({
-      totalRevenue: totalRevenue[0]?.total || 0,
-      totalTransactions,
-      activeUsers,
-      packages,
-      recentTransactions,
+      success: true,
+      stats: {
+        totalRevenue: totalRevenue[0]?.total || 0,
+        todayRevenue: todayRevenue[0]?.total || 0,
+        totalTransactions: await Transaction.countDocuments({ status: 'completed' }),
+        totalUsers: await User.countDocuments()
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch stats" });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Manage Packages
-router.post("/packages", authMiddleware, async (req, res) => {
+// ======================
+// Packages Management
+// ======================
+
+// Get all packages
+router.get('/packages', async (req, res) => {
   try {
-    const pkg = await Package.create(req.body);
-    res.json(pkg);
+    const packages = await Package.find().sort({ sortOrder: 1, price: 1 });
+    res.json({ success: true, packages });
   } catch (error) {
-    res.status(500).json({ error: "Failed to create package" });
+    res.status(500).json({ success: false, message: 'Failed to fetch packages' });
   }
 });
 
-router.put("/packages/:id", authMiddleware, async (req, res) => {
+// Create new package
+router.post('/packages', async (req, res) => {
+  try {
+    const pkg = new Package(req.body);
+    await pkg.save();
+    res.json({ success: true, package: pkg });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update package
+router.put('/packages/:id', async (req, res) => {
   try {
     const pkg = await Package.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(pkg);
+    if (!pkg) return res.status(404).json({ success: false, message: 'Package not found' });
+    res.json({ success: true, package: pkg });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update package" });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-router.delete("/packages/:id", authMiddleware, async (req, res) => {
+// Delete package
+router.delete('/packages/:id', async (req, res) => {
   try {
-    await Package.findByIdAndUpdate(req.params.id, { isActive: false });
-    res.json({ message: "Package deactivated" });
+    await Package.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Package deleted' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete package" });
+    res.status(500).json({ success: false, message: error.message });
   }
+});
+
+// Seed default packages
+router.post('/seed', async (req, res) => {
+  // ... (same as before)
 });
 
 module.exports = router;

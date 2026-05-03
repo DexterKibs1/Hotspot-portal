@@ -1,43 +1,30 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
-// Admin Login
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email, role: "admin" });
+const SECRET = process.env.JWT_SECRET || "pulse-secret-key-2026";
 
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+// Login
+router.post('/login', async (req, res) => {
+  const { phone, password } = req.body;
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "24h" });
-    res.json({ token, user: { email: user.email, role: user.role } });
-  } catch (error) {
-    res.status(500).json({ error: "Login failed" });
+  const user = await User.findOne({ phone });
+  if (!user || !(await user.comparePassword(password))) {
+    return res.status(401).json({ success: false, message: "Invalid credentials" });
   }
-});
 
-// Create Admin (run once)
-router.post("/setup", async (req, res) => {
-  try {
-    const existing = await User.findOne({ role: "admin" });
-    if (existing) return res.status(400).json({ error: "Admin already exists" });
-
-    const admin = await User.create({
-      phone: "0700000000",
-      email: process.env.ADMIN_EMAIL || "admin@hotspot.com",
-      password: process.env.ADMIN_PASSWORD || "Admin@1234",
-      role: "admin",
-      name: "Admin",
-    });
-
-    res.json({ message: "Admin created successfully", email: admin.email });
-  } catch (error) {
-    res.status(500).json({ error: "Setup failed" });
+  if (!['admin', 'staff'].includes(user.role)) {
+    return res.status(403).json({ success: false, message: "Access denied" });
   }
+
+  const token = jwt.sign({ id: user._id, role: user.role }, SECRET, { expiresIn: '8h' });
+
+  res.json({
+    success: true,
+    token,
+    user: { name: user.name, role: user.role, phone: user.phone }
+  });
 });
 
 module.exports = router;
