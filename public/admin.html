@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin – HotConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg: #0a0f1e; --surface: #111827; --card: #1a2235; --accent: #00e5a0; --accent2: #0ea5e9; --text: #f0f4ff; --muted: #8899aa; --border: rgba(255,255,255,0.07); --danger: #ef4444; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Login */
+    #login-page {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;
+    }
+    .login-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 2.5rem; max-width: 400px; width: 100%; text-align: center;
+    }
+    .login-card h2 { font-family: 'Syne', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .login-card p { color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem; }
+    label { display: block; text-align: left; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem; }
+    input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); padding: 0.85rem 1rem; font-size: 1rem; font-family: 'DM Sans', sans-serif;
+      margin-bottom: 1.25rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%; background: linear-gradient(135deg, var(--accent), #00c87a); color: #000;
+      border: none; border-radius: 10px; padding: 1rem; font-size: 1rem; font-weight: 700;
+      font-family: 'Syne', sans-serif; cursor: pointer; transition: all 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,229,160,0.3); }
+    .error-msg { color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; }
+
+    /* Dashboard */
+    #dashboard { display: none; }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.25rem 2rem; border-bottom: 1px solid var(--border);
+      background: rgba(10,15,30,0.9); position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; }
+    .logo span { color: var(--accent); }
+    .logout-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    .dashboard-body { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem; margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;
+    }
+    .stat-card .label { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.5rem; }
+    .stat-card .value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--accent); }
+
+    .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 1.25rem; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 0.75rem 1rem; color: var(--muted); font-size: 0.8rem; font-weight: 500; border-bottom: 1px solid var(--border); }
+    td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem; }
+
+    .badge {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+    }
+    .badge.completed { background: rgba(0,229,160,0.15); color: var(--accent); }
+    .badge.pending { background: rgba(234,179,8,0.15); color: #eab308; }
+    .badge.failed { background: rgba(239,68,68,0.15); color: var(--danger); }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-page">
+  <div class="login-card">
+    <h2>🔐 Admin Login</h2>
+    <p>Enter your credentials to access the dashboard</p>
+    <div id="error-msg" class="error-msg" style="display:none"></div>
+    <label>Email</label>
+    <input type="email" id="admin-email" placeholder="admin@hotspot.com"/>
+    <label>Password</label>
+    <input type="password" id="admin-password" placeholder="••••••••"/>
+    <button class="btn" onclick="adminLogin()">Login to Dashboard</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="logo">Hot<span>Connect</span> Admin</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+  <div class="dashboard-body">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">💰 Total Revenue</div><div class="value" id="stat-revenue">—</div></div>
+      <div class="stat-card"><div class="label">✅ Total Transactions</div><div class="value" id="stat-transactions">—</div></div>
+      <div class="stat-card"><div class="label">🟢 Active Sessions</div><div class="value" id="stat-active">—</div></div>
+    </div>
+
+    <div class="section-title">Recent Transactions</div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Phone</th><th>Package</th><th>Amount</th><th>Receipt</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="transactions-body"><tr><td colspan="6" style="text-align:center;color:var(--muted)">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let token = localStorage.getItem('admin_token');
+  if (token) loadDashboard();
+
+  async function adminLogin() {
+    const email = document.getElementById('admin-email').value;
+    const password = document.getElementById('admin-password').value;
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
+        token = data.token;
+        loadDashboard();
+      } else {
+        const err = document.getElementById('error-msg');
+        err.style.display = 'block';
+        err.textContent = data.error || 'Login failed';
+      }
+    } catch { alert('Connection error'); }
+  }
+
+  async function loadDashboard() {
+    try {
+      const res = await fetch('/api/admin/stats', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+
+      document.getElementById('stat-revenue').textContent = `KSh ${data.totalRevenue.toLocaleString()}`;
+      document.getElementById('stat-transactions').textContent = data.totalTransactions;
+      document.getElementById('stat-active').textContent = data.activeUsers;
+
+      const tbody = document.getElementById('transactions-body');
+      if (!data.recentTransactions.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No transactions yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.recentTransactions.map(t => `
+        <tr>
+          <td>${t.phone}</td>
+          <td>${t.packageName}</td>
+          <td>KSh ${t.amount}</td>
+          <td>${t.mpesaReceiptNumber || '—'}</td>
+          <td><span class="badge ${t.status}">${t.status}</span></td>
+          <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    } catch { logout(); }
+  }
+
+  function logout() {
+    localStorage.removeItem('admin_token');
+    document.getElementById('login-page').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HotConnect – WiFi Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --card: #1a2235;
+      --accent: #00e5a0;
+      --accent2: #0ea5e9;
+      --text: #f0f4ff;
+      --muted: #8899aa;
+      --border: rgba(255,255,255,0.07);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      border-radius: 50%;
+      animation: pulse 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(14,165,233,0.06) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      border-radius: 50%;
+      animation: pulse 8s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,15,30,0.8);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .logo span { color: var(--accent); }
+    .wifi-icon { font-size: 1.2rem; }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--accent); }
+
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,229,160,0.1);
+      border: 1px solid rgba(0,229,160,0.3);
+      color: var(--accent);
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 480px;
+      margin: 0 auto 3rem;
+      line-height: 1.6;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Packages */
+    .section-label {
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 3rem;
+    }
+
+    .packages {
+      padding: 4rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .package-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .package-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,229,160,0.05), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .package-card:hover { border-color: rgba(0,229,160,0.4); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .package-card:hover::before { opacity: 1; }
+    .package-card.selected { border-color: var(--accent); background: rgba(0,229,160,0.08); }
+    .package-card.selected::before { opacity: 1; }
+
+    .popular-badge {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 50px;
+      letter-spacing: 0.05em;
+    }
+
+    .pkg-duration {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .pkg-price {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .pkg-price sup { font-size: 1rem; vertical-align: super; }
+    .pkg-speed {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    .pkg-desc {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    /* Buy Form */
+    .buy-section {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+    .buy-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+    }
+    .buy-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+    }
+    .selected-pkg-display {
+      background: rgba(0,229,160,0.08);
+      border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .selected-pkg-display.show { display: block; }
+    .selected-pkg-display p { font-size: 0.9rem; color: var(--muted); }
+    .selected-pkg-display strong { color: var(--accent); }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      font-family: 'DM Sans', sans-serif;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #00c87a);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,229,160,0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    /* Status Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+    .modal-overlay.show .modal { transform: scale(1); }
+    .modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; margin-bottom: 0.75rem; }
+    .modal p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .modal-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 2rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    /* Features */
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+    .feature {
+      display: flex; align-items: center; gap: 0.5rem;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    .feature-icon { color: var(--accent); font-size: 1rem; }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+
+    #no-packages { text-align: center; color: var(--muted); padding: 2rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span class="wifi-icon">📡</span> Hot<span>Connect</span></div>
+  <a href="/admin" class="nav-link">Admin →</a>
+</nav>
+
+<div class="hero">
+  <div class="badge"><div class="dot"></div> WiFi Access Portal</div>
+  <h1>Connect to the <em>Internet</em><br>in Seconds</h1>
+  <p class="subtitle">Choose a package, pay via M-Pesa, and enjoy fast internet access instantly.</p>
+</div>
+
+<section class="packages">
+  <div class="section-label">Choose Your Plan</div>
+  <div class="section-title">Select a Package</div>
+  <div class="packages-grid" id="packages-grid">
+    <div id="no-packages">Loading packages...</div>
+  </div>
+</section>
+
+<section class="buy-section">
+  <div class="buy-card">
+    <h3>💳 Pay with M-Pesa</h3>
+    <div class="selected-pkg-display" id="selected-display">
+      Selected: <strong id="selected-name">—</strong> &nbsp;|&nbsp; KSh <strong id="selected-price">—</strong>
+    </div>
+    <label>M-Pesa Phone Number</label>
+    <input type="tel" id="phone" placeholder="07XXXXXXXX" maxlength="10"/>
+    <button class="btn" id="pay-btn" onclick="initiatePayment()">
+      📲 Send STK Push
+    </button>
+    <p class="hint">You will receive a prompt on your phone to enter your M-Pesa PIN</p>
+  </div>
+</section>
+
+<div class="features">
+  <div class="feature"><span class="feature-icon">⚡</span> Instant Activation</div>
+  <div class="feature"><span class="feature-icon">🔒</span> Secure Payments</div>
+  <div class="feature"><span class="feature-icon">📶</span> High Speed WiFi</div>
+  <div class="feature"><span class="feature-icon">🌍</span> Unlimited Browsing</div>
+</div>
+
+<footer>© 2024 HotConnect. All rights reserved.</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div id="modal-content">
+      <div class="spinner"></div>
+      <h3>Waiting for Payment</h3>
+      <p>Check your phone for the M-Pesa prompt and enter your PIN to complete payment.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selectedPackage = null;
+  let pollInterval = null;
+
+  // Load packages
+  async function loadPackages() {
+    try {
+      const res = await fetch('/api/packages');
+      const packages = await res.json();
+      const grid = document.getElementById('packages-grid');
+
+      if (!packages.length) {
+        grid.innerHTML = '<div id="no-packages">No packages available. Contact admin.</div>';
+        return;
+      }
+
+      grid.innerHTML = packages.map(pkg => `
+        <div class="package-card" onclick="selectPackage('${pkg._id}', '${pkg.name}', ${pkg.price}, this)">
+          ${pkg.popular ? '<div class="popular-badge">⭐ POPULAR</div>' : ''}
+          <div class="pkg-duration">${pkg.name}</div>
+          <div class="pkg-price"><sup>KSh </sup>${pkg.price}</div>
+          <div class="pkg-speed">📶 ${pkg.speed}</div>
+          <div class="pkg-desc">${pkg.description}</div>
+        </div>
+      `).join('');
+    } catch (err) {
+      document.getElementById('packages-grid').innerHTML = '<div id="no-packages">Failed to load packages.</div>';
+    }
+  }
+
+  function selectPackage(id, name, price, el) {
+    document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPackage = { id, name, price };
+    document.getElementById('selected-name').textContent = name;
+    document.getElementById('selected-price').textContent = price;
+    document.getElementById('selected-display').classList.add('show');
+  }
+
+  async function initiatePayment() {
+    if (!selectedPackage) return alert('Please select a package first.');
+    const phone = document.getElementById('phone').value.trim();
+    if (!phone || phone.length < 10) return alert('Please enter a valid phone number.');
+
+    const btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, packageId: selectedPackage.id })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showModal('pending');
+        pollPaymentStatus(data.transactionId);
+      } else {
+        alert(data.error || 'Payment failed. Try again.');
+      }
+    } catch (err) {
+      alert('Connection error. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '📲 Send STK Push';
+    }
+  }
+
+  function pollPaymentStatus(transactionId) {
+    let attempts = 0;
+    pollInterval = setInterval(async () => {
+      attempts++;
+      if (attempts > 24) { // ~2 mins
+        clearInterval(pollInterval);
+        showModal('timeout');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/payment/status/${transactionId}`);
+        const data = await res.json();
+        if (data.status === 'completed') {
+          clearInterval(pollInterval);
+          showModal('success', data);
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          showModal('failed');
+        }
+      } catch {}
+    }, 5000);
+  }
+
+  function showModal(state, data = {}) {
+    const modal = document.getElementById('modal');
+    const content = document.getElementById('modal-content');
+    modal.classList.add('show');
+
+    if (state === 'pending') {
+      content.innerHTML = `<div class="spinner"></div><h3>Waiting for Payment</h3><p>Check your phone for the M-Pesa prompt and enter your PIN.</p>`;
+    } else if (state === 'success') {
+      content.innerHTML = `<div class="modal-icon">✅</div><h3>Payment Successful!</h3><p>Receipt: <strong>${data.receipt}</strong><br>Package: ${data.package}<br>Session active until: ${new Date(data.sessionEnd).toLocaleTimeString()}</p><button class="modal-btn" onclick="window.location.href='/success'">Start Browsing →</button>`;
+    } else if (state === 'failed') {
+      content.innerHTML = `<div class="modal-icon">❌</div><h3>Payment Failed</h3><p>The payment was not completed. Please try again.</p><button class="modal-btn" onclick="document.getElementById('modal').classList.remove('show')">Try Again</button>`;
+    } else if (state === 'timeout') {
+      content.innerHTML = `<div class="modal-icon">⏱️</div><h3>Timed Out</h3><p>No payment received. If you paid, wait a moment and refresh.</p><button class="modal-btn" onclick="document.getElementById('modal').classList.remove('show')">Close</button>`;
+    }
+  }
+
+  loadPackages();
+</script>
+</body>
+</html>

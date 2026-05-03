@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connected – HotConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --accent: #00e5a0; --bg: #0a0f1e; --card: #1a2235; --text: #f0f4ff; --muted: #8899aa; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .container { max-width: 480px; }
+    .icon-wrap {
+      width: 100px; height: 100px;
+      background: rgba(0,229,160,0.1);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 2rem;
+      animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes pop { from { transform: scale(0); opacity:0 } to { transform: scale(1); opacity:1 } }
+    h1 { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
+    h1 span { color: var(--accent); }
+    p { color: var(--muted); line-height: 1.6; margin-bottom: 2rem; }
+    .speed-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-around;
+    }
+    .stat label { display: block; color: var(--muted); font-size: 0.75rem; margin-bottom: 0.25rem; }
+    .stat span { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--accent); }
+    .timer { font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--muted); }
+    .timer span { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-wrap">✅</div>
+    <h1>You're <span>Connected!</span></h1>
+    <p>Your internet session is now active. Enjoy fast, reliable WiFi.</p>
+    <div class="speed-card">
+      <div class="stat"><label>Status</label><span>🟢 Active</span></div>
+      <div class="stat"><label>Speed</label><span>10 Mbps</span></div>
+      <div class="stat"><label>Device</label><span>Connected</span></div>
+    </div>
+    <p class="timer">Session expires in: <span id="countdown">—</span></p>
+  </div>
+  <script>
+    // Countdown timer from session end if available
+    const sessionEnd = localStorage.getItem('sessionEnd');
+    if (sessionEnd) {
+      setInterval(() => {
+        const diff = new Date(sessionEnd) - new Date();
+        if (diff <= 0) { document.getElementById('countdown').textContent = 'Expired'; return; }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        document.getElementById('countdown').textContent = `${h}h ${m}m ${s}s`;
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
